@@ -110,7 +110,14 @@ namespace TestApp
                 object res = null;
                 bool Completed = ExecuteWithTimeLimit(TimeSpan.FromMilliseconds(30000), () =>
                 {
-                    res = method.Invoke(null, temp);
+                    try
+                    {
+                        res = method.Invoke(null, temp);
+                    }
+                    catch(Exception ex)
+                    {
+                        res = null;
+                    }
 
                 });
                 if (Completed)
@@ -125,8 +132,9 @@ namespace TestApp
                 }
                 return false;
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                //MessageBox.Show(ex.Message);
                 return false;
             }
         }
@@ -147,6 +155,12 @@ namespace TestApp
                     //Jeśli jest tablicą, wykorzystuje funkcje z CreateParametersArray.cs do stworzenia tablicy z parametrami
                     //Ilość wymiarów tablicy
                     int dim = param[i].GetArrayRank();
+
+                    //Jeśli wymiary tablic wynikowej i z parametru nie są równe, zwraca aktualny stan parametrów aby na pewno wywalić błąd
+                    if (dim != CreateParametersArray.GetSourceRank(tab[i]))
+                    {
+                        return temp;
+                    }
 
                     //Tablica jednowymiarowa z elementami tablicy
                     object[] o = CreateParametersArray.GetElements(tab[i], dim, param[i].GetElementType()).ToArray();
@@ -178,6 +192,12 @@ namespace TestApp
             //Jeśli jest tablicą, wykorzystuje funkcje z CreateParametersArray.cs do stworzenia tablicy z parametrami
             //Ilość wymiarów tablicy
             int dim = type.GetArrayRank();
+
+            //Jeśli wymiary tablic wynikowej i z parametru nie są równe, zwraca null
+            if (dim != CreateParametersArray.GetSourceRank(res))
+            {
+                return null;
+            }
 
             //Tablica jednowymiarowa z elementami tablicy
             object[] o = CreateParametersArray.GetElements(res, dim, type.GetElementType()).ToArray();

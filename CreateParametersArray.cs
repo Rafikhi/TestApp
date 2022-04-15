@@ -5,6 +5,21 @@ namespace TestApp
 {
     class CreateParametersArray
     {
+        //Zwraca wymiar oczekiwany tablicy
+        public static int GetSourceRank(string s)
+        {
+            int count = 0;
+            for(int i = 0; i < s.Length; i++)
+            {
+                if(s[i] != '{')
+                {
+                    break;
+                }
+                count++;
+            }
+            return count;
+        }
+
         //Zwraca tablicę z wymiarami tablicy wielowymiarowej na podstawie napisu oraz wymiaru tablicy wyjściowej
         public static int[] GetLengths(string s, int dim)
         {
@@ -55,6 +70,7 @@ namespace TestApp
                 //Ustawia ignorowanie znaków specjalnych jeśli znajdują się między cudzysłowiami
                 if (s[i].Equals('\"') && !s[i - 1].Equals('\\'))
                 {
+                    //ignore ^= true;
                     if (ignore)
                     {
                         ignore = false;
