@@ -11,6 +11,7 @@ namespace TestApp
         string solutionsPath;           //Przechowuje ścieżkę do folderu z rozwiązaniami
         List<Solution> solutions;       //Przechowuje informacje o rozwiązaniach
         List<Test> tests;               //Przechowuje informacje o testach
+        int iterator = 0;               //Iterator do określenia aktualnie sprawdzanego rozwiązania
         public Check(List<Solution> sol, List<Test> tes, string folderPath)
         {
             //Przypisanie wszystkich wartości przesłanych z okna Start do zmiennych
@@ -36,40 +37,45 @@ namespace TestApp
         //Po przetestowaniu wszystkich rozwiązań pokazuje przycisk przechodzący do okna output
         private void Check_Shown(object sender, EventArgs e)
         {
-            ResearchSolutionsAndExportToCSV(solutionsPath);
-            end.Visible = true;
+            //Ustawiamy wartość maksymalną dla paska ładowania na ilość rozwiązań
+            progressBar.Maximum = 100;
+            backgroundWorker.WorkerReportsProgress = true;
+            backgroundWorker.RunWorkerAsync();
         }
 
         //Funkcja przyjmuje jako argument ścieżkę do folderu w którym ma powstać plik CSV.
         //Wykonuje ona testy na podstawie danych z list z rozwiązaniami oraz testami.
         void ResearchSolutionsAndExportToCSV(string path)
         {
-            //Ustawiamy wartość maksymalną dla paska ładowania na ilość rozwiązań
-            progressBar.Maximum = solutions.Count;
-
             //Tworzymy StreamWritera do zapisywania rozwiązań do pliku CSV oraz wpisanie pierwszego wiersza nagłówkowego
             StreamWriter sw = new StreamWriter(path + "\\wyniki.csv", false, Encoding.UTF8);
-            sw.WriteLine("Numer Albumu;Grupa;Podejście;Data Utworzenia pliku .sln; Rozmiar" + CountTests(tests));
+            sw.WriteLine("Numer Albumu;Grupa;Podejście;Data Utworzenia pliku .sln;Rozmiar" + CountTests(tests) + ";Uwagi");
 
             //Indeks aktualnie sprawdzanego rozwiązania
-            int i = 0;
+            string notes;
 
             //Pętla przechodząca przez wszystkie rozwiązania
             foreach (Solution s in solutions)
             {
-                //Pętla wykonuje wszystkie testy dla danego rozwiązania i zapisuje je do listy przechowywującej wyniki
-                for (int j = 0; j < tests.Count; j++)
+                try
                 {
-                    s.testResults.Add(RunTests.TestFunction(tests[j], s.path));
+                    notes = "";
+                    //Pętla wykonuje wszystkie testy dla danego rozwiązania i zapisuje je do listy przechowywującej wyniki
+                    for (int j = 0; j < tests.Count; j++)
+                    {
+                        s.testResults.Add(RunTests.TestFunction(tests[j], s.path));
+                    }
+                }
+                catch(Exception e)
+                {
+                    notes = e.Message;
                 }
 
                 //Zapisujemy informacje o rozwiązaniu do pliku CSV
-                sw.WriteLine(s.FormatCSV());
-
-                //Zaktualizowanie danych w GUI
-                progressBar.PerformStep();
-                i++;
-                counter.Text = "Sprawdzono " + i + " na " + solutions.Count + " rozwiązań";
+                sw.WriteLine(s.FormatCSV() + ";" + notes);
+                iterator++;
+                int percentComplete = (int)((float)iterator / (float)solutions.Count * 100);
+                backgroundWorker.ReportProgress(percentComplete);
             }
 
             //Zamknięcie pliku
@@ -89,6 +95,23 @@ namespace TestApp
                 }
             }
             return s;
+        }
+
+        private void backgroundWorker_DoWork(object sender, System.ComponentModel.DoWorkEventArgs e)
+        {
+            ResearchSolutionsAndExportToCSV(solutionsPath);
+        }
+
+        private void backgroundWorker_RunWorkerCompleted(object sender, System.ComponentModel.RunWorkerCompletedEventArgs e)
+        {
+            end.Visible = true;
+        }
+
+        private void backgroundWorker_ProgressChanged(object sender, System.ComponentModel.ProgressChangedEventArgs e)
+        {
+            //Zaktualizowanie danych w GUI
+            counter.Text = "Sprawdzono " + iterator + " na " + solutions.Count + " rozwiązań";
+            progressBar.Value = e.ProgressPercentage;
         }
     }
 }

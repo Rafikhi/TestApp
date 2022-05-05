@@ -32,6 +32,7 @@ namespace TestApp
             this.progressBar = new System.Windows.Forms.ProgressBar();
             this.counter = new System.Windows.Forms.Label();
             this.end = new System.Windows.Forms.Button();
+            this.backgroundWorker = new System.ComponentModel.BackgroundWorker();
             this.SuspendLayout();
             // 
             // progressBar
@@ -63,6 +64,12 @@ namespace TestApp
             this.end.Visible = false;
             this.end.Click += new System.EventHandler(this.end_Click);
             // 
+            // backgroundWorker
+            // 
+            this.backgroundWorker.DoWork += new System.ComponentModel.DoWorkEventHandler(this.backgroundWorker_DoWork);
+            this.backgroundWorker.ProgressChanged += new System.ComponentModel.ProgressChangedEventHandler(this.backgroundWorker_ProgressChanged);
+            this.backgroundWorker.RunWorkerCompleted += new System.ComponentModel.RunWorkerCompletedEventHandler(this.backgroundWorker_RunWorkerCompleted);
+            // 
             // Check
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
@@ -84,5 +91,6 @@ namespace TestApp
         private System.Windows.Forms.ProgressBar progressBar;
         private System.Windows.Forms.Label counter;
         private System.Windows.Forms.Button end;
+        private System.ComponentModel.BackgroundWorker backgroundWorker;
     }
 }
